@@ -32,7 +32,6 @@ class NeuralNetwork:
             for i in range(len(arr)):
                 z.append(np.full((count), arr[i][0]))
         else:
-            #print("#♠2", arr, type(arr))
             for i in range(count):
                 z.append(arr)
         return np.array(z)
@@ -42,15 +41,12 @@ class NeuralNetwork:
             input, target = data[np.random.randint(len(data))]
             self.passData(input)
             gamma = [0. for i in range(self.size - 1)]
-            #print("#1", self.weights[0])
-            gamma[-1] = self.z[-1] - target
+            gamma[-1] = (self.z[-1] - target) * self.sigmoidp(self.y[-1])
             for j in range(self.size - 2, -1, -1):
                 if(j != 0):#backprop the error
-                    gamma[j - 1] = np.dot(self.weights[j], np.transpose(self.sigmoidp(self.y[j]) * gamma[j]))
-                #print("#4", gamma[-1], self.y[0])
-                #print("#3", self.expandArray(gamma[j] * self.sigmoidp(self.y[j]), 1, self.sizes[j]), "/" *10, "/"*10, self.expandArray(self.z[j].reshape(-1, 1), 0, self.sizes[j + 1]))
-                self.weights[j] = self.weights[j] - eta * self.expandArray(gamma[j] * self.sigmoidp(self.y[j]), 1, self.sizes[j]) * self.expandArray(self.z[j].reshape(-1, 1), 0, self.sizes[j + 1])
-                self.bias[j] =  self.bias[j] - eta * gamma[j] * self.sigmoidp(self.y[j])
+                    gamma[j - 1] = np.dot(self.weights[j], np.transpose(gamma[j])) * self.sigmoidp(self.y[j - 1])
+                self.weights[j] = self.weights[j] - eta * self.expandArray(gamma[j], 1, self.sizes[j]) * self.expandArray(self.z[j].reshape(-1, 1), 0, self.sizes[j + 1])
+                self.bias[j] =  self.bias[j] - eta * gamma[j]
         print("RESULTS")
         for i in range(10):
             input, target = data[np.random.randint(len(data))]
@@ -58,8 +54,8 @@ class NeuralNetwork:
             print("Expected ->", target, ", output ->", self.z[-1])
 
 
-r = 4*np.random.rand(2000, 2) - 2
+r = 4*np.random.rand(1000, 2) - 2
 data = [[i, np.array([(i[0]**2 + i[1]**2)>=1])] for i in r]
-n = NeuralNetwork((2, 4, 1))
-n.trainNetwork(data, 0.0001, 100000)
+n = NeuralNetwork((2, 3, 1))
+n.trainNetwork(data, 3, 10000)
 
